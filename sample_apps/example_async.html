@@ -1,0 +1,105 @@
+<html>
+<head>
+	<link rel="stylesheet" type="text/css" href="mystyle.css">
+<script type='text/javascript'>
+/*
+* Initialize tracking SDK
+*/
+//some default pre init
+var Countly = Countly || {};
+Countly.q = Countly.q || [];
+Countly.sent_item_view = {};
+
+//provide countly initialization parameters
+Countly.app_key = "e2b09978e9699114d7b281676b96e30092c28449";
+Countly.url = "http://139.99.121.125:8080"; //your server goes here
+Countly.debug = true;
+
+//load countly script asynchronously
+(function() {
+	var cly = document.createElement('script'); cly.type = 'text/javascript';
+	cly.async = true;
+	//enter url of script here
+	cly.src = '../lib/countly.js';
+
+	cly.onload = function(){Countly.init()};
+	var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(cly, s);
+})();
+//start pushing function calls to queue
+//track sessions automatically
+Countly.q.push(['track_sessions', true]);
+// Initializing tracking SDK End
+
+//track pageview automatically
+props = {}
+props.user_id = 'user_id'
+
+Countly.q.push(['minty_track_pageview', 'page_name', props]);
+
+
+</script>
+</head>
+<body onscroll="itemViewEvent()" title="body">
+	<div class="content">
+
+		<div class="app" >
+			<div class="item">
+				<button onclick="clickEvent()"> clickEvent</button>
+			</div>
+		</div>
+	</div>
+<script type='text/javascript'>
+
+function clickEvent(){
+	props = {}
+	props.user_id = 'user_id' //logined user
+	props.id = 'item_id' //song id, video id, ...
+	props.url = 'item_url' //song url, video url, ...
+	Countly.q.push(['minty_track_user_action', 'click_event', props])
+}
+
+function shouldSendItemView(html_element) {
+	var item_class_name = html_element.className
+	if (Countly.sent_item_view.hasOwnProperty(item_class_name)) {
+		return false;
+	}
+	var w_width = window.innerWidth
+	var w_height = window.innerHeight
+	var w_offsetX = window.pageXOffset
+	var w_offsetY = window.pageYOffset
+	var  offset_top = html_element.offsetTop;
+	var  offset_left = html_element.offsetLeft;
+	var  offset_h = html_element.offsetHeight;
+	var  offset_w = html_element.offsetWidth;
+	//console.log('w_width: ' + w_width + ', w_height: ' + w_height +
+	//', w_offsetX: ' + w_offsetX + ', w_offsetY: ' + w_offsetY);
+	//console.log('offset_top: ' + offset_top + ', offset_left: ' + offset_left +
+	//', offset_h: ' + offset_h, ', offset_w: ' + offset_w);
+
+	if (offset_left > w_offsetX && offset_top > w_offsetY
+		&& offset_left + offset_w < w_offsetX + w_width
+		&& offset_top + offset_h < w_offsetY + w_height) {
+			Countly.sent_item_view[item_class_name] = true
+			return true;
+	}
+
+	return false;
+
+}
+function itemViewEvent() {
+	item_class_name = 'item'
+	var props = {}
+	props.user_id = 'user_id'
+	var items = document.getElementsByClassName(item_class_name)
+	for(var i = 0; i < items.length; i++) {
+		if (shouldSendItemView(items[i])) {
+				Countly.q.push(['minty_track_itemview', items[i], props])
+				console.log('Event sent!')
+		}
+	}
+}
+
+
+</script>
+</body>
+</html>
